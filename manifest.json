@@ -1,0 +1,18 @@
+{
+  "short_name": "InvoiceGen",
+  "name": "Invoice Generator",
+  "description": "A web application to create, edit, and generate professional invoices in PDF format, closely replicating a user-provided design. The app features dynamic item tables, automatic calculations, and PDF export functionality.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#111827",
+  "background_color": "#000000"
+}
