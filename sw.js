@@ -11,6 +11,7 @@ const urlsToCache = [
   '/components/ItemsTable.tsx',
   '/components/Logo.tsx',
   '/components/PrintableInvoice.tsx',
+  '/components/InstallPwaPrompt.tsx',
   '/icon.svg'
 ];
 

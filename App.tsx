@@ -4,6 +4,7 @@ import { InvoiceData, LineItem, HistoryItem } from './types';
 import InvoiceForm from './components/InvoiceForm';
 import History from './components/History';
 import PrintableInvoice from './components/PrintableInvoice';
+import InstallPwaPrompt from './components/InstallPwaPrompt';
 
 // --- ICONS ---
 const DownloadIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}> <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /> </svg> );
@@ -14,6 +15,14 @@ const StoreIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg xm
 const MiscIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}> <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.47 2.118 2.25 2.25 0 0 0-2.47-2.118c-.113.028-.227.051-.344.075m6.238-9.422c.042-.02.082-.041.122-.061a6 6 0 0 1 7.42 0a6 6 0 0 0 7.42 0c.04.02.08.041.122.061M3 12c0-1.148.645-2.166 1.6-2.67M21 12a9.753 9.753 0 0 0-4.592-4.592M3 12a9.753 9.753 0 0 1 4.592-4.592m13.816 4.592c.321.124.63.26.927.401M3 12a9.75 9.75 0 0 1 .927-.401" /> </svg> );
 const SpinnerIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"> <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle> <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path> </svg> );
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed',
+    platform: string,
+  }>;
+  prompt(): Promise<void>;
+}
 
 type TemplateData = Omit<InvoiceData, 'date' | 'receiptNumber' | 'anticipo'>;
 const getCurrentDate = () => { const today = new Date(); const day = String(today.getDate()).padStart(2, '0'); const month = String(today.getMonth() + 1).padStart(2, '0'); const year = String(today.getFullYear()).slice(-2); return `${day}/${month}/${year}`; };
@@ -129,6 +138,40 @@ function App() {
   const [currentView, setCurrentView] = useState<'dashboard' | 'form'>('dashboard');
   const [generatedPdfFile, setGeneratedPdfFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+        e.preventDefault();
+        setInstallPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        return;
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstall = () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the A2HS prompt');
+        } else {
+            console.log('User dismissed the A2HS prompt');
+        }
+        setInstallPrompt(null);
+    });
+  };
+
+  const handleDismissInstall = () => {
+    setInstallPrompt(null);
+  };
 
   useEffect(() => { localStorage.setItem('invoiceHistory', JSON.stringify(history)); }, [history]);
   
@@ -358,6 +401,13 @@ function App() {
                 <SpinnerIcon className="animate-spin w-12 h-12 text-white mb-4" />
                 <p className="text-white text-lg">Generando PDF para compartir...</p>
             </div>
+          )}
+          
+          {installPrompt && (
+              <InstallPwaPrompt 
+                  onInstall={handleInstall}
+                  onDismiss={handleDismissInstall}
+              />
           )}
       </div>
       <style>

@@ -1,8 +1,22 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="512" height="512" rx="90" fill="#111827"/>
-    <path d="M160 80H352L400 128V432C400 440.837 392.837 448 384 448H128C119.163 448 112 440.837 112 432V96C112 87.1632 119.163 80 128 80H160Z" fill="#2D3748"/>
-    <path d="M352 80L400 128H368C359.163 128 352 120.837 352 112V80Z" fill="#4A5568"/>
-    <path d="M256 368C284.284 368 307 345.284 307 317C307 288.716 284.284 266 256 266C227.716 266 205 288.716 205 317C205 345.284 227.716 368 256 368Z" stroke="#38A169" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M256 242V290" stroke="#38A169" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M256 344V392" stroke="#38A169" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect width="512" height="512" rx="90" fill="#000000"/>
+    <g transform="translate(170, 170) scale(1.2)">
+        <!-- Top row of dots -->
+        <circle cx="0" cy="0" r="8" fill="white"/>
+        <circle cx="30" cy="0" r="8" fill="white"/>
+        <circle cx="60" cy="0" r="8" fill="white"/>
+        <circle cx="90" cy="0" r="8" fill="white"/>
+        <circle cx="120" cy="0" r="8" fill="white"/>
+        <circle cx="150" cy="0" r="8" fill="white"/>
+        <!-- Bottom row of dots -->
+        <circle cx="0" cy="25" r="8" fill="white"/>
+        <circle cx="30" cy="25" r="8" fill="white"/>
+        <circle cx="60" cy="25" r="8" fill="white"/>
+        <circle cx="90" cy="25" r="8" fill="white"/>
+        <circle cx="120" cy="25" r="8" fill="white"/>
+        <circle cx="150" cy="25" r="8" fill="white"/>
+    </g>
+    <text x="50%" y="350" text-anchor="middle" fill="white" font-size="80" font-family="sans-serif" font-weight="300" letter-spacing="4">
+        appdesign
+    </text>
 </svg>
