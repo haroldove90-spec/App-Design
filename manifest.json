@@ -1,7 +1,7 @@
 {
-  "short_name": "InvoiceGen",
-  "name": "Invoice Generator",
-  "description": "A web application to create, edit, and generate professional invoices in PDF format, closely replicating a user-provided design. The app features dynamic item tables, automatic calculations, and PDF export functionality.",
+  "short_name": "App Design",
+  "name": "App Design",
+  "description": "Generador de recibos para App Design. Crea, edita y exporta recibos profesionales en formato PDF.",
   "icons": [
     {
       "src": "/icon.svg",

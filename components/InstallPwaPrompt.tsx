@@ -36,9 +36,9 @@ const InstallPwaPrompt: React.FC<InstallPwaPromptProps> = ({ onInstall, onDismis
         <div className="mx-auto mb-4">
             <AppIcon className="w-20 h-20 mx-auto" />
         </div>
-        <h2 id="install-title" className="text-2xl font-bold text-white mb-2">Instalar Aplicación</h2>
+        <h2 id="install-title" className="text-2xl font-bold text-white mb-2">Instalar App Design</h2>
         <p className="text-gray-300 mb-6">
-          Añade esta aplicación a tu pantalla de inicio para un acceso rápido y sin conexión.
+          Añade App Design a tu pantalla de inicio para un acceso rápido y sin conexión.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
           <button
