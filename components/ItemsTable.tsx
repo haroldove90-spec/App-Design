@@ -19,38 +19,40 @@ const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
 const ItemsTable: React.FC<ItemsTableProps> = ({ items, handleItemChange, deleteItem, addItem, isPrintVersion = false }) => {
 
   if (isPrintVersion) {
+    const minRows = 12;
     // --- PRINT TABLE ---
     return (
       <div className="block">
         <table className="w-full border-collapse text-xs">
           <thead>
-            <tr className="bg-[#2d577b] text-white">
-              <th className="p-2 text-left font-bold border-r border-[#386b95] w-[8%]">Cant.</th>
-              <th className="p-2 text-left font-bold border-r border-[#386b95] w-[15%]">N.º de artículo</th>
-              <th className="p-2 text-left font-bold border-r border-[#386b95]">Descripción</th>
-              <th className="p-2 text-right font-bold border-r border-[#386b95] w-[15%]">Precio por unidad</th>
-              <th className="p-2 text-right font-bold border-r border-[#386b95] w-[15%]">Descuento</th>
+            <tr className="border-b-2 border-gray-400 text-black">
+              <th className="p-2 text-left font-bold w-[8%]">Cant.</th>
+              <th className="p-2 text-left font-bold w-[15%]">N.º de artículo</th>
+              <th className="p-2 text-left font-bold">Descripción</th>
+              <th className="p-2 text-right font-bold w-[15%]">Precio Unit.</th>
+              <th className="p-2 text-right font-bold w-[15%]">Descuento</th>
               <th className="p-2 text-right font-bold w-[15%]">Total</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
-              <tr key={item.id} className="even:bg-gray-100 odd:bg-white text-black">
-                <td className="p-2 border-r border-gray-200 text-center">{item.quantity > 0 ? item.quantity : ''}</td>
-                <td className="p-2 border-r border-gray-200">{item.articleNumber}</td>
-                <td className="p-2 border-r border-gray-200">{item.description}</td>
-                <td className="p-2 border-r border-gray-200 text-right">{item.unitPrice > 0 ? `$${item.unitPrice.toFixed(2)}` : ''}</td>
-                <td className="p-2 border-r border-gray-200 text-right">{item.discount > 0 ? `$${item.discount.toFixed(2)}` : ''}</td>
-                <td className="p-2 text-right">{((item.quantity * item.unitPrice) - item.discount) > 0 ? `$${((item.quantity * item.unitPrice) - item.discount).toFixed(2)}` : ''}</td>
+              <tr key={item.id} className="border-b border-gray-200 text-black">
+                <td className="p-2 text-center align-top">{item.quantity > 0 ? item.quantity : ''}</td>
+                <td className="p-2 align-top">{item.articleNumber}</td>
+                <td className="p-2 align-top">{item.description}</td>
+                <td className="p-2 text-right align-top">{item.unitPrice > 0 ? `$${item.unitPrice.toFixed(2)}` : ''}</td>
+                <td className="p-2 text-right align-top">{item.discount > 0 ? `$${item.discount.toFixed(2)}` : ''}</td>
+                <td className="p-2 text-right align-top font-semibold">{((item.quantity * item.unitPrice) - item.discount) > 0 ? `$${((item.quantity * item.unitPrice) - item.discount).toFixed(2)}` : ''}</td>
               </tr>
             ))}
-            {[...Array(Math.max(0, 15 - items.length))].map((_, i) => (
-              <tr key={`placeholder-${i}`} className="even:bg-gray-100 odd:bg-white h-9">
-                <td className="p-2 border-r border-gray-200">&nbsp;</td>
-                <td className="p-2 border-r border-gray-200"></td>
-                <td className="p-2 border-r border-gray-200"></td>
-                <td className="p-2 border-r border-gray-200"></td>
-                <td className="p-2 border-r border-gray-200"></td>
+            {/* Add placeholder rows to ensure a minimum table height, improving layout consistency for short invoices */}
+            {[...Array(Math.max(0, minRows - items.length))].map((_, i) => (
+              <tr key={`placeholder-${i}`} className="border-b border-gray-200 h-8">
+                <td className="p-2">&nbsp;</td>
+                <td className="p-2"></td>
+                <td className="p-2"></td>
+                <td className="p-2"></td>
+                <td className="p-2"></td>
                 <td className="p-2"></td>
               </tr>
             ))}
