@@ -119,7 +119,7 @@ const Dashboard: React.FC<{ history: HistoryItem[]; onNewInvoice: (template: Tem
                 </div>
             </div>
             <div className="mb-8 p-4 bg-gray-900 rounded-xl print:hidden">
-                <h2 className="text-lg font-semibold text-white mb-4 text-center">Crear Nuevo Recibo</h2>
+                <h2 className="text-lg font-semibold text-white mb-4 text-center">Crear Nuevo Recibo de Ventas</h2>
                 <div className="flex flex-wrap justify-center gap-2" role="group">
                     <button onClick={() => onNewInvoice(webPageTemplateData)} className="transition-all duration-200 text-gray-300 hover:bg-gray-700 bg-gray-800 hover:text-white rounded-lg px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto flex-grow"><WebIcon className="w-5 h-5" />Página Web</button>
                     <button onClick={() => onNewInvoice(onlineStoreTemplateData)} className="transition-all duration-200 text-gray-300 hover:bg-gray-700 bg-gray-800 hover:text-white rounded-lg px-4 py-2 flex items-center justify-center gap-2 w-full sm:w-auto flex-grow"><StoreIcon className="w-5 h-5" />Tienda en Línea</button>
@@ -182,23 +182,36 @@ function App() {
   }, [currentView]);
 
   const subtotal = useMemo(() => { return invoiceData.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice) - item.discount, 0); }, [invoiceData.items]);
-  const restante = useMemo(() => subtotal - invoiceData.anticipo, [subtotal, invoiceData.anticipo]);
-  
+  const [restante, setRestante] = useState(0);
+
+  useEffect(() => {
+    if (invoiceData.anticipo <= 0) {
+      setRestante(subtotal);
+    }
+  }, [subtotal]);
+
   const handleInputChange = (field: keyof Omit<InvoiceData, 'items' | 'anticipo'>, value: string) => { setInvoiceData(prev => ({ ...prev, [field]: value })); };
   
   const handleAnticipoChange = (value: string) => {
     const numValue = parseFloat(value);
-    setInvoiceData(prev => ({ ...prev, anticipo: isNaN(numValue) ? 0 : numValue }));
+    const newAnticipo = isNaN(numValue) ? 0 : numValue;
+    setInvoiceData(prev => ({ ...prev, anticipo: newAnticipo }));
+    setRestante(subtotal - newAnticipo);
+  };
+
+  const handleRestanteChange = (value: string) => {
+    const numValue = parseFloat(value);
+    setRestante(isNaN(numValue) ? 0 : numValue);
   };
 
   const handleItemChange = (id: string, field: keyof Omit<LineItem, 'id'>, value: string | number) => { setInvoiceData(prev => ({ ...prev, items: prev.items.map(item => item.id === id ? { ...item, [field]: value } : item), })); };
   const addItem = () => { const newItem: LineItem = { id: crypto.randomUUID(), quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true }; setInvoiceData(prev => ({ ...prev, items: [...prev.items, newItem] })); };
   const deleteItem = (id: string) => { setInvoiceData(prev => ({ ...prev, items: prev.items.filter(item => item.id !== id), })); };
   
-  const updateHistory = (currentInvoice: InvoiceData, total: number) => {
+  const updateHistory = (currentInvoice: InvoiceData, total: number, restante: number) => {
     setHistory(prevHistory => {
         const existingIndex = prevHistory.findIndex(inv => inv.receiptNumber === currentInvoice.receiptNumber);
-        const newHistoryItem: HistoryItem = { ...currentInvoice, total };
+        const newHistoryItem: HistoryItem = { ...currentInvoice, total, restante };
         if (existingIndex > -1) {
             const updatedHistory = [...prevHistory]; updatedHistory[existingIndex] = newHistoryItem; return updatedHistory;
         }
@@ -208,68 +221,74 @@ function App() {
 
   const handleNewInvoice = (template: TemplateData) => {
       const newInvoice = createInvoiceFromTemplate(template, folio);
-      const initialSubtotal = newInvoice.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice) - item.discount, 0);
-      newInvoice.anticipo = initialSubtotal / 2;
       setInvoiceData(newInvoice);
       setGeneratedPdfFile(null);
       setCurrentView('form');
   };
   
-  const generateAndPreparePdf = async (targetInvoiceData: InvoiceData): Promise<File | null> => {
-    const printContainer = document.createElement('div');
-    printContainer.style.position = 'absolute';
-    printContainer.style.left = '-9999px';
-    printContainer.style.top = '0';
-    document.body.appendChild(printContainer);
+  const generateAndPreparePdf = (targetInvoiceData: InvoiceData, restanteForPdf: number): Promise<File | null> => {
+    return new Promise((resolvePromise) => {
+      const printContainer = document.createElement('div');
+      printContainer.style.position = 'absolute';
+      printContainer.style.left = '-9999px';
+      printContainer.style.top = '0';
+      document.body.appendChild(printContainer);
 
-    const targetSubtotal = targetInvoiceData.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice) - item.discount, 0);
-    const targetRestante = targetSubtotal - targetInvoiceData.anticipo;
+      const root = ReactDOM.createRoot(printContainer);
 
-    const root = ReactDOM.createRoot(printContainer);
-    root.render(
-      <PrintableInvoice 
-        invoiceData={targetInvoiceData} 
-        subtotal={targetSubtotal}
-        restante={targetRestante}
-      />
-    );
-
-    await new Promise(resolve => setTimeout(resolve, 50));
-
-    const elementToRender = printContainer.firstElementChild;
-    if (!elementToRender) {
-        document.body.removeChild(printContainer);
-        return null;
-    }
-
-    const sanitizedClientName = targetInvoiceData.soldTo.trim().replace(/\s+/g, '_').replace(/[^\w-]/g, '');
-    const clientNameForFile = sanitizedClientName || 'Cliente';
-    const fileName = `Recibo-${clientNameForFile}-${targetInvoiceData.receiptNumber}.pdf`;
-    
-    const opt = { 
-        margin: 0, 
-        filename: fileName, 
-        image: { type: 'jpeg', quality: 0.98 }, 
-        html2canvas:  { scale: 2, useCORS: true }, 
-        jsPDF: { unit: 'in', format: 'legal', orientation: 'portrait' } 
-    };
-
-    try {
-        // @ts-ignore
-        const blob = await html2pdf().set(opt).from(elementToRender).output('blob');
-        return new File([blob], fileName, { type: 'application/pdf' });
-    } catch (error) {
-        console.error("PDF Generation failed", error);
-        return null;
-    } finally {
+      const cleanUp = () => {
         root.unmount();
-        document.body.removeChild(printContainer);
-    }
+        if (document.body.contains(printContainer)) {
+            document.body.removeChild(printContainer);
+        }
+      };
+      
+      const generate = async () => {
+        const elementToRender = printContainer.firstElementChild;
+        if (!elementToRender) {
+          cleanUp();
+          resolvePromise(null);
+          return;
+        }
+
+        const sanitizedClientName = targetInvoiceData.soldTo.trim().replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+        const clientNameForFile = sanitizedClientName || 'Cliente';
+        const fileName = `ReciboDeVentas-${clientNameForFile}-${targetInvoiceData.receiptNumber}.pdf`;
+        
+        const opt = { 
+            margin: 0, 
+            filename: fileName, 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas:  { scale: 2, useCORS: true }, 
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } 
+        };
+
+        try {
+            // @ts-ignore
+            const pdfBlob = await html2pdf().set(opt).from(elementToRender).output('blob');
+            const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+            resolvePromise(file);
+        } catch (error) {
+            console.error("PDF Generation failed", error);
+            resolvePromise(null);
+        } finally {
+            cleanUp();
+        }
+      };
+
+      root.render(
+        <PrintableInvoice 
+          invoiceData={targetInvoiceData} 
+          restante={restanteForPdf}
+          onRendered={generate}
+        />
+      );
+    });
   };
 
   const handleGeneratePdf = async () => {
       setIsGenerating(true);
-      const file = await generateAndPreparePdf(invoiceData);
+      const file = await generateAndPreparePdf(invoiceData, restante);
       if (file) {
           setGeneratedPdfFile(file);
           
@@ -282,7 +301,7 @@ function App() {
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
 
-          updateHistory(invoiceData, subtotal);
+          updateHistory(invoiceData, subtotal, restante);
           const nextFolio = folio + 1;
           setFolio(nextFolio);
           localStorage.setItem('invoiceFolio', nextFolio.toString());
@@ -292,7 +311,7 @@ function App() {
 
   const handleShare = async () => {
       if (!generatedPdfFile) return;
-      const shareData = { files: [generatedPdfFile], title: `Recibo de Venta ${invoiceData.receiptNumber}`, text: `Aquí está el recibo para ${invoiceData.soldTo}.` };
+      const shareData = { files: [generatedPdfFile], title: `Recibo de Ventas ${invoiceData.receiptNumber}`, text: `Aquí está el recibo de ventas para ${invoiceData.soldTo}.` };
       if (navigator.canShare && navigator.canShare(shareData)) {
           try {
               await navigator.share(shareData);
@@ -313,11 +332,14 @@ function App() {
           return;
       }
       
-      const file = await generateAndPreparePdf(invoiceToShare);
+      const subtotalForHistoryItem = invoiceToShare.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice) - item.discount, 0);
+      const restanteForHistoryItem = invoiceToShare.restante !== undefined ? invoiceToShare.restante : (subtotalForHistoryItem - invoiceToShare.anticipo);
+      
+      const file = await generateAndPreparePdf(invoiceToShare, restanteForHistoryItem);
       
       if (file) {
           try {
-              const shareData = { files: [file], title: `Recibo de Venta ${invoiceToShare.receiptNumber}`, text: `Aquí está el recibo para ${invoiceToShare.soldTo}.` };
+              const shareData = { files: [file], title: `Recibo de Ventas ${invoiceToShare.receiptNumber}`, text: `Aquí está el recibo de ventas para ${invoiceToShare.soldTo}.` };
               if (navigator.canShare && navigator.canShare(shareData)) {
                   await navigator.share(shareData);
               } else {
@@ -332,8 +354,10 @@ function App() {
   const loadFromHistory = (receiptNumber: string) => {
     const invoiceToLoad = history.find(inv => inv.receiptNumber === receiptNumber);
     if (invoiceToLoad) { 
-        const { total, ...invoiceState } = invoiceToLoad; 
+        const { total, restante: loadedRestante, ...invoiceState } = invoiceToLoad; 
         setInvoiceData(invoiceState);
+        const loadedSubtotal = invoiceState.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice) - item.discount, 0);
+        setRestante(loadedRestante !== undefined ? loadedRestante : (loadedSubtotal - invoiceState.anticipo));
         setGeneratedPdfFile(null);
         setCurrentView('form');
     }
@@ -360,10 +384,10 @@ function App() {
                   invoiceData={invoiceData}
                   handleInputChange={handleInputChange}
                   handleAnticipoChange={handleAnticipoChange}
+                  handleRestanteChange={handleRestanteChange}
                   handleItemChange={handleItemChange}
                   addItem={addItem}
                   deleteItem={deleteItem}
-                  subtotal={subtotal}
                   restante={restante}
                   returnToDashboard={returnToDashboard}
               />
@@ -397,7 +421,7 @@ function App() {
           )}
 
           {isGenerating && currentView === 'dashboard' && (
-            <div className="fixed inset-0 bg-black bg-opacity-75 flex flex-col items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50">
                 <SpinnerIcon className="animate-spin w-12 h-12 text-white mb-4" />
                 <p className="text-white text-lg">Generando PDF para compartir...</p>
             </div>

@@ -1,85 +1,76 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { InvoiceData } from '../types';
 import ItemsTable from './ItemsTable';
-import Logo from './Logo';
 
 interface PrintableInvoiceProps {
   invoiceData: InvoiceData;
-  subtotal: number;
   restante: number;
+  onRendered?: () => void;
 }
 
-const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({ invoiceData, subtotal, restante }) => {
+const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({ invoiceData, restante, onRendered }) => {
+  useEffect(() => {
+    if (onRendered) {
+      const handle = setTimeout(onRendered, 50);
+      return () => clearTimeout(handle);
+    }
+  }, [onRendered]);
+
   return (
-    // Using A4-like dimensions for better standard fitting, but inside an 8.5x14 container for legal format.
-    // The font is changed to a more classic 'serif' font for official documents.
-    <div id="invoice-to-print" className="bg-white text-black font-serif w-[8.5in] min-h-[14in] p-12 flex flex-col">
-      <header className="flex justify-between items-start pb-8 border-b-2 border-gray-200">
-        <div className="flex items-start gap-6">
-          <Logo className="w-40" />
-          <div className="text-xs text-gray-600">
-            <p className="font-bold text-base text-black">App Design</p>
-            <p>Álamo No. 8,</p>
-            <p>Los Reyes Iztacala, Tlalnepantla,</p>
-            <p>Edo. de México.</p>
+    <div id="invoice-to-print" className="bg-white text-black font-sans w-[8.5in] h-[11in] p-8 flex flex-col text-sm">
+      <header className="flex justify-between items-start mb-4">
+        <div>
+          <svg width="160" viewBox="0 0 500 230" xmlns="http://www.w3.org/2000/svg">
+              <g transform="translate(160,30)">
+                  <circle cx="0" cy="0" r="8" fill="#a0aec0"/><circle cx="30" cy="0" r="8" fill="#a0aec0"/><circle cx="60" cy="0" r="8" fill="#a0aec0"/><circle cx="90" cy="0" r="8" fill="#a0aec0"/><circle cx="120" cy="0" r="8" fill="#a0aec0"/><circle cx="150" cy="0" r="8" fill="#a0aec0"/>
+                  <circle cx="0" cy="25" r="8" fill="#a0aec0"/><circle cx="30" cy="25" r="8" fill="#a0aec0"/><circle cx="60" cy="25" r="8" fill="#a0aec0"/><circle cx="90" cy="25" r="8" fill="#a0aec0"/><circle cx="120" cy="25" r="8" fill="#a0aec0"/><circle cx="150" cy="25" r="8" fill="#a0aec0"/>
+              </g>
+              <text x="50%" y="185" textAnchor="middle" fill="#a0aec0" fontSize="100" fontFamily="sans-serif" fontWeight="300" letterSpacing="2">appdesign</text>
+          </svg>
+          <div className="mt-4 ml-1">
+              <p>Vendido a: <span className="font-semibold">{invoiceData.soldTo || 'N/A'}</span></p>
           </div>
         </div>
         <div className="text-right">
-          <h1 className="text-4xl font-light text-gray-800 tracking-wider">RECIBO</h1>
-          <div className="mt-4 text-sm text-gray-700">
-            <p><span className="font-semibold text-gray-800">Fecha:</span> {invoiceData.date}</p>
-            <p><span className="font-semibold text-gray-800">Recibo #:</span> {invoiceData.receiptNumber}</p>
+          <h2 className="text-4xl font-light text-gray-700">Recibo de ventas</h2>
+          <div className="mt-2 text-sm space-y-1">
+              <p><span className="font-semibold">Fecha:</span> {invoiceData.date}</p>
+              <p><span className="font-semibold">Recibo:</span> {invoiceData.receiptNumber}</p>
           </div>
         </div>
       </header>
 
-      <main className="flex-grow pt-8">
-          <section className="mb-10 grid grid-cols-2">
-            <div>
-              <p className="text-sm text-gray-600 font-semibold">VENDIDO A:</p>
-              <p className="text-black font-bold text-lg">{invoiceData.soldTo || 'N/A'}</p>
-            </div>
-          </section>
+      <section className="grid grid-cols-3 text-center text-white font-bold" style={{ backgroundColor: '#3275B2' }}>
+        <div className="p-1">Método de pago</div>
+        <div className="p-1 border-l border-r border-white">Condiciones de pago</div>
+        <div className="p-1">Cuenta Bancaria</div>
+      </section>
+      <section className="grid grid-cols-3 text-center border-l border-r border-b border-gray-300 min-h-[4rem] items-center">
+         <div className="p-2">{invoiceData.paymentMethod}</div>
+         <div className="p-2 border-l border-r border-gray-300">{invoiceData.paymentConditions}</div>
+         <div className="p-2 whitespace-pre-line">{invoiceData.bankAccount}</div>
+      </section>
 
-          {/* Using a more modern layout for payment details, cleaner than the 3-column table */}
-          <section className="grid grid-cols-3 gap-4 mb-8 text-sm border-t border-b border-gray-200 py-4">
-            <div>
-              <h3 className="font-bold text-gray-700 mb-1">Método de pago</h3>
-              <p className="text-gray-600 whitespace-pre-wrap">{invoiceData.paymentMethod}</p>
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-700 mb-1">Condiciones de pago</h3>
-              <p className="text-gray-600 whitespace-pre-wrap">{invoiceData.paymentConditions}</p>
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-700 mb-1">Cuenta Bancaria</h3>
-              <p className="text-gray-600 whitespace-pre-wrap">{invoiceData.bankAccount}</p>
-            </div>
-          </section>
-
+      <main className="flex-grow mt-4">
           <ItemsTable items={invoiceData.items} handleItemChange={() => {}} deleteItem={() => {}} addItem={() => {}} isPrintVersion={true} />
-          
-          <section className="flex justify-end mt-8">
-            <div className="w-full max-w-sm text-sm text-gray-700">
-              <div className="flex justify-between p-2">
-                  <span className="font-semibold text-gray-800">Subtotal:</span>
-                  <span>${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between p-2 bg-gray-50">
-                <span className="font-semibold text-gray-800">Anticipo:</span>
-                <span>${invoiceData.anticipo.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center bg-blue-600 text-white p-3 font-bold text-base rounded-md mt-2">
-                <span>RESTANTE A PAGAR:</span>
-                <span>${restante.toFixed(2)}</span>
-              </div>
-            </div>
-          </section>
       </main>
 
-      <footer className="text-center text-gray-500 text-xs mt-auto pt-8 border-t border-gray-200">
-        <p className="font-semibold">Gracias por su confianza.</p>
-        <p>Si tiene alguna pregunta sobre este recibo, por favor contáctenos.</p>
+      <section className="flex justify-end mt-4">
+        <div className="w-64">
+            <div className="flex justify-between items-center py-1 px-2">
+                <span>Anticipo</span>
+                <span className="font-semibold">$ {invoiceData.anticipo > 0 ? invoiceData.anticipo.toLocaleString('es-MX', {minimumFractionDigits: 0, maximumFractionDigits: 0}) : '0'}</span>
+            </div>
+            <div className="flex justify-between items-center py-1 px-2 mt-1" style={{ backgroundColor: '#e0e0e0'}}>
+                <span className="font-bold">Total restante</span>
+                <span className="font-bold">$ {restante.toLocaleString('es-MX', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span>
+            </div>
+        </div>
+      </section>
+
+      <footer className="mt-auto pt-4 text-center text-xs text-gray-500">
+        <p className="font-bold">Gracias por su confianza.</p>
+        <p>Álamo No. 8, Los Reyes Iztacala, Tlalnepantla, Edo. de México., C.P. 54070 Tel. 55 7579 3453 – Cel. 56 2422 2449</p>
       </footer>
     </div>
   );

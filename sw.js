@@ -9,7 +9,6 @@ const urlsToCache = [
   '/components/History.tsx',
   '/components/InvoiceForm.tsx',
   '/components/ItemsTable.tsx',
-  '/components/Logo.tsx',
   '/components/PrintableInvoice.tsx',
   '/components/InstallPwaPrompt.tsx',
   '/icon.svg'

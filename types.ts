@@ -23,4 +23,5 @@ export interface InvoiceData {
 
 export interface HistoryItem extends InvoiceData {
     total: number;
+    restante?: number;
 }

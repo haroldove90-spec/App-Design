@@ -9,8 +9,8 @@ interface InvoiceFormProps {
   handleItemChange: (id: string, field: keyof Omit<LineItem, 'id'>, value: string | number) => void;
   addItem: () => void;
   deleteItem: (id: string) => void;
-  subtotal: number;
   restante: number;
+  handleRestanteChange: (value: string) => void;
   returnToDashboard: () => void;
 }
 
@@ -23,8 +23,8 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   handleItemChange,
   addItem,
   deleteItem,
-  subtotal,
   restante,
+  handleRestanteChange,
   returnToDashboard
 }) => {
   const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -49,14 +49,14 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
               <img src="https://appdesignmex.com/assets/images/app-desig-logo-272x122.png" alt="Logo Appdesign" className="w-48" />
             </div>
             <div className="text-left sm:text-right mt-4 sm:mt-0 w-full sm:w-auto">
-              <h2 className="text-2xl sm:text-3xl font-light uppercase tracking-widest">Recibo de ventas</h2>
+              <h2 className="text-2xl sm:text-3xl font-light uppercase tracking-widest">Recibo de Ventas</h2>
               <div className="mt-2 text-sm">
                 <div className="flex justify-start sm:justify-end">
                   <span className="font-semibold mr-2">Fecha:</span>
                   <input type="text" value={invoiceData.date} readOnly className="text-left sm:text-right bg-gray-800 focus:outline-none rounded px-1 cursor-default"/>
                 </div>
                 <div className="flex justify-start sm:justify-end">
-                  <span className="font-semibold mr-2">Recibo:</span>
+                  <span className="font-semibold mr-2">Recibo #:</span>
                   <input type="text" value={invoiceData.receiptNumber} readOnly className="text-left sm:text-right bg-gray-800 focus:outline-none rounded px-1 cursor-default"/>
                 </div>
               </div>
@@ -94,25 +94,32 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           <section className="flex justify-end mt-8">
             <div className="w-full sm:w-1/2 text-sm">
               <div className="flex justify-between p-2">
-                <span className="font-semibold">Subtotal:</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between p-2">
                 <span className="font-semibold">Anticipo:</span>
                 <div className="flex items-center">
                   <span className="mr-1">$</span>
                   <input 
                     type="number" 
-                    value={invoiceData.anticipo} 
+                    value={invoiceData.anticipo || ''} 
                     onChange={(e) => handleAnticipoChange(e.target.value)}
                     onFocus={handleInputFocus}
+                    placeholder="0.00"
                     className="w-28 text-right font-medium p-1 bg-gray-800 border-b border-gray-700 focus:outline-none focus:bg-gray-700" 
                   />
                 </div>
               </div>
               <div className="flex justify-between items-center p-2 mt-2 bg-red-600 text-white font-bold rounded">
-                <span className="text-lg">Restante</span>
-                <span className="text-lg">${restante.toFixed(2)}</span>
+                <span className="text-lg">Total</span>
+                <div className="flex items-center">
+                  <span className="mr-1 text-lg">$</span>
+                  <input 
+                    type="number" 
+                    value={restante || ''}
+                    onChange={(e) => handleRestanteChange(e.target.value)}
+                    onFocus={handleInputFocus}
+                    placeholder="0.00"
+                    className="w-32 text-right text-lg font-bold p-1 bg-transparent border-b border-red-400 focus:outline-none focus:bg-red-700" 
+                  />
+                </div>
               </div>
             </div>
           </section>

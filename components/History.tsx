@@ -25,14 +25,14 @@ const History: React.FC<HistoryProps> = ({ history, loadInvoice, deleteInvoice, 
   if (history.length === 0) {
     return (
         <div className="max-w-4xl mx-auto mt-8 p-4 bg-gray-800 rounded-lg text-center text-gray-400 print:hidden">
-            No hay recibos guardados en el historial.
+            No hay órdenes de compra guardadas en el historial.
         </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto mt-8 print:hidden">
-      <h2 className="text-xl font-bold text-gray-200 mb-4">Recibos Generados</h2>
+      <h2 className="text-xl font-bold text-gray-200 mb-4">Órdenes de Compra Generadas</h2>
       
       {/* Desktop Table */}
       <div className="hidden md:block bg-gray-900 rounded-lg overflow-hidden shadow-lg">
@@ -58,7 +58,7 @@ const History: React.FC<HistoryProps> = ({ history, loadInvoice, deleteInvoice, 
                   <button onClick={() => shareInvoice(invoice.receiptNumber)} className="font-medium text-green-400 hover:underline inline-flex items-center gap-1">
                     <ShareIcon className="w-4 h-4" /> Compartir
                   </button>
-                  <button onClick={() => deleteInvoice(invoice.receiptNumber)} className="text-red-500 hover:text-red-400 p-1" aria-label={`Borrar recibo ${invoice.receiptNumber}`}>
+                  <button onClick={() => deleteInvoice(invoice.receiptNumber)} className="text-red-500 hover:text-red-400 p-1" aria-label={`Borrar orden de compra ${invoice.receiptNumber}`}>
                     <TrashIcon className="w-5 h-5 inline-block" />
                   </button>
                 </td>
@@ -83,10 +83,10 @@ const History: React.FC<HistoryProps> = ({ history, loadInvoice, deleteInvoice, 
                     <p className="text-xs text-gray-400">Fecha: {invoice.date}</p>
                     <div className="flex items-center gap-2">
                         <button onClick={() => loadInvoice(invoice.receiptNumber)} className="font-medium text-blue-400 hover:underline px-2">Cargar</button>
-                        <button onClick={() => shareInvoice(invoice.receiptNumber)} className="p-1 text-green-400 hover:text-green-300" aria-label={`Compartir recibo ${invoice.receiptNumber}`}>
+                        <button onClick={() => shareInvoice(invoice.receiptNumber)} className="p-1 text-green-400 hover:text-green-300" aria-label={`Compartir orden de compra ${invoice.receiptNumber}`}>
                            <ShareIcon className="w-5 h-5" />
                         </button>
-                        <button onClick={() => deleteInvoice(invoice.receiptNumber)} className="text-red-500 hover:text-red-400 p-1" aria-label={`Borrar recibo ${invoice.receiptNumber}`}>
+                        <button onClick={() => deleteInvoice(invoice.receiptNumber)} className="text-red-500 hover:text-red-400 p-1" aria-label={`Borrar orden de compra ${invoice.receiptNumber}`}>
                              <TrashIcon className="w-5 h-5" />
                         </button>
                     </div>
