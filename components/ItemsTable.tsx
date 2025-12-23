@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { LineItem } from '../types';
 
@@ -13,6 +14,12 @@ const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
     <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.58.22-2.365.468a2.25 2.25 0 00-1.933 2.15l.16 1.605h12.278l.16-1.605a2.25 2.25 0 00-1.933-2.15c-.785-.248-1.57-.391-2.365-.468v-.443A2.75 2.75 0 0011.25 1h-2.5zM10 4.25a.75.75 0 01.75.75v.01c0 .414-.336.75-.75.75a.75.75 0 01-.75-.75v-.01c0-.414.336.75.75.75zM10 10a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
     <path d="M3 9.055l.187 1.874A2.25 2.25 0 005.41 13h9.18a2.25 2.25 0 002.223-2.071L17 9.055V9h-1.009l-.17.005a.75.75 0 01-.734-.842l.092-.916a2.25 2.25 0 00-2.14-1.992C11.385 5.16 10.72 5 10 5s-1.385.16-2.039.21a2.25 2.25 0 00-2.14 1.992l.092.916a.75.75 0 01-.734.842l-.17-.005H3v.055z" />
+  </svg>
+);
+
+const PlusIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
   </svg>
 );
 
@@ -63,6 +70,10 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, handleItemChange, delete
 
   // --- SCREEN VIEW ---
   const handleNumericChange = <T extends keyof Omit<LineItem, 'id' | 'description' | 'articleNumber'>>(id: string, field: T, value: string) => {
+    if (value === '') {
+      handleItemChange(id, field, 0);
+      return;
+    }
     const numValue = parseFloat(value);
     handleItemChange(id, field, isNaN(numValue) ? 0 : numValue);
   };
@@ -97,27 +108,27 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, handleItemChange, delete
                 const isDescriptionEditable = item.isDescriptionEditable ?? isRowEditable;
                 const isPriceEditable = item.isPriceEditable ?? isRowEditable;
                 const isDeletable = item.isEditable !== false;
-                const inputClass = "w-full p-2 bg-transparent focus:outline-none focus:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed";
+                const inputClass = "w-full p-2 bg-transparent focus:outline-none focus:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed text-white";
                 const priceInputClass = `${inputClass} pl-6 text-right`;
                 
                 return (
                   <tr key={item.id} className={`${index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'}`}>
-                    <td className="p-0 border border-gray-700"><input type="number" value={item.quantity || ''} onChange={(e) => handleNumericChange(item.id, 'quantity', e.target.value)} onFocus={handleInputFocus} className={inputClass} disabled={!isPriceEditable} /></td>
+                    <td className="p-0 border border-gray-700"><input type="number" value={item.quantity === 0 ? '' : item.quantity} onChange={(e) => handleNumericChange(item.id, 'quantity', e.target.value)} onFocus={handleInputFocus} className={inputClass} disabled={!isPriceEditable} /></td>
                     <td className="p-0 border border-gray-700"><input type="text" value={item.articleNumber} onChange={(e) => handleItemChange(item.id, 'articleNumber', e.target.value)} onFocus={handleInputFocus} className={inputClass} disabled={!isDescriptionEditable} /></td>
                     <td className="p-0 border border-gray-700"><input type="text" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} onFocus={handleInputFocus} className={inputClass} disabled={!isDescriptionEditable} /></td>
                     <td className="p-0 border border-gray-700">
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400">$</span>
-                        <input type="number" step="any" value={item.unitPrice || ''} onChange={(e) => handleNumericChange(item.id, 'unitPrice', e.target.value)} onFocus={handleInputFocus} className={priceInputClass} disabled={!isPriceEditable} />
+                        <input type="number" step="any" value={item.unitPrice === 0 ? '' : item.unitPrice} onChange={(e) => handleNumericChange(item.id, 'unitPrice', e.target.value)} onFocus={handleInputFocus} className={priceInputClass} disabled={!isPriceEditable} />
                       </div>
                     </td>
                     <td className="p-0 border border-gray-700">
                       <div className="relative">
                           <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400">$</span>
-                          <input type="number" step="any" value={item.discount || ''} onChange={(e) => handleNumericChange(item.id, 'discount', e.target.value)} onFocus={handleInputFocus} className={priceInputClass} disabled={!isPriceEditable} />
+                          <input type="number" step="any" value={item.discount === 0 ? '' : item.discount} onChange={(e) => handleNumericChange(item.id, 'discount', e.target.value)} onFocus={handleInputFocus} className={priceInputClass} disabled={!isPriceEditable} />
                       </div>
                     </td>
-                    <td className="p-2 border border-gray-700 text-right font-medium">${total.toFixed(2)}</td>
+                    <td className="p-2 border border-gray-700 text-right font-medium text-white">${total.toFixed(2)}</td>
                     <td className="p-1 border border-gray-700 text-center">
                       {isDeletable && (
                         <button onClick={() => deleteItem(item.id)} className="text-red-500 hover:text-red-700 p-1">
@@ -128,17 +139,6 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, handleItemChange, delete
                   </tr>
                 );
               })}
-              {[...Array(Math.max(0, 18 - items.length))].map((_, i) => (
-                <tr key={`placeholder-${i}`} className={`${(items.length + i) % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'}`} >
-                    <td className="p-2 border border-gray-700 h-10">&nbsp;</td>
-                    <td className="p-2 border border-gray-700"></td>
-                    <td className="p-2 border border-gray-700"></td>
-                    <td className="p-2 border border-gray-700"></td>
-                    <td className="p-2 border border-gray-700"></td>
-                    <td className="p-2 border border-gray-700"></td>
-                    <td className="p-2 border border-gray-700"></td>
-                </tr>
-              ))}
             </tbody>
           </table>
         </div>
@@ -151,7 +151,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, handleItemChange, delete
             const isDescriptionEditable = item.isDescriptionEditable ?? isRowEditable;
             const isPriceEditable = item.isPriceEditable ?? isRowEditable;
             const isDeletable = item.isEditable !== false;
-            const inputClass = "w-full p-2 mt-1 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:bg-gray-600 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed";
+            const inputClass = "w-full p-2 mt-1 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:bg-gray-600 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed text-white";
             const priceInputClass = `${inputClass} pl-7`;
 
             return (
@@ -162,9 +162,9 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, handleItemChange, delete
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     <div><label className="block text-gray-400 font-medium text-xs">Nº de artículo</label><input type="text" value={item.articleNumber} onChange={(e) => handleItemChange(item.id, 'articleNumber', e.target.value)} onFocus={handleInputFocus} className={inputClass} disabled={!isDescriptionEditable} /></div>
-                    <div><label className="block text-gray-400 font-medium text-xs">Cant.</label><input type="number" value={item.quantity || ''} onChange={(e) => handleNumericChange(item.id, 'quantity', e.target.value)} onFocus={handleInputFocus} className={inputClass} disabled={!isPriceEditable} /></div>
-                    <div><label className="block text-gray-400 font-medium text-xs">Precio unitario</label><div className="relative"><span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">$</span><input type="number" step="any" value={item.unitPrice || ''} onChange={(e) => handleNumericChange(item.id, 'unitPrice', e.target.value)} onFocus={handleInputFocus} className={priceInputClass} disabled={!isPriceEditable} /></div></div>
-                    <div><label className="block text-gray-400 font-medium text-xs">Descuento</label><div className="relative"><span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">$</span><input type="number" step="any" value={item.discount || ''} onChange={(e) => handleNumericChange(item.id, 'discount', e.target.value)} onFocus={handleInputFocus} className={priceInputClass} disabled={!isPriceEditable} /></div></div>
+                    <div><label className="block text-gray-400 font-medium text-xs">Cant.</label><input type="number" value={item.quantity === 0 ? '' : item.quantity} onChange={(e) => handleNumericChange(item.id, 'quantity', e.target.value)} onFocus={handleInputFocus} className={inputClass} disabled={!isPriceEditable} /></div>
+                    <div><label className="block text-gray-400 font-medium text-xs">Precio unitario</label><div className="relative"><span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">$</span><input type="number" step="any" value={item.unitPrice === 0 ? '' : item.unitPrice} onChange={(e) => handleNumericChange(item.id, 'unitPrice', e.target.value)} onFocus={handleInputFocus} className={priceInputClass} disabled={!isPriceEditable} /></div></div>
+                    <div><label className="block text-gray-400 font-medium text-xs">Descuento</label><div className="relative"><span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">$</span><input type="number" step="any" value={item.discount === 0 ? '' : item.discount} onChange={(e) => handleNumericChange(item.id, 'discount', e.target.value)} onFocus={handleInputFocus} className={priceInputClass} disabled={!isPriceEditable} /></div></div>
                 </div>
                 <div className="mt-4 pt-2 border-t border-gray-700 text-right"><span className="text-gray-300">Total: </span><span className="font-bold text-lg text-white">${total.toFixed(2)}</span></div>
               </div>
@@ -173,9 +173,15 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, handleItemChange, delete
         </div>
       </div>
 
-      <button onClick={addItem} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors print:hidden">
-        Añadir Fila
-      </button>
+      <div className="mt-6 flex justify-center print:hidden">
+        <button 
+          onClick={addItem} 
+          className="group flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 active:scale-95 transition-all duration-200 shadow-lg hover:shadow-blue-500/20"
+        >
+          <PlusIcon className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
+          <span>Añadir concepto</span>
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { InvoiceData, LineItem, HistoryItem } from './types';
@@ -5,6 +6,7 @@ import InvoiceForm from './components/InvoiceForm';
 import History from './components/History';
 import PrintableInvoice from './components/PrintableInvoice';
 import InstallPwaPrompt from './components/InstallPwaPrompt';
+import { supabase } from './supabase';
 
 // --- ICONS ---
 const DownloadIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}> <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /> </svg> );
@@ -14,6 +16,7 @@ const WebIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg xmln
 const StoreIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}> <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.25a.75.75 0 01-.75-.75v-7.5a.75.75 0 01.75-.75h7.5a.75.75 0 01.75.75v7.5a.75.75 0 01-.75.75z" /> <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.25a.75.75 0 01-.75-.75v-7.5a.75.75 0 01.75-.75h7.5a.75.75 0 01.75.75v7.5a.75.75 0 01-.75-.75zM13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21" /> <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0-.621.504-1.125 1.125-1.125h17.25c.621 0 1.125.504 1.125 1.125v3.375c0 .621-.504 1.125-1.125 1.125h-17.25A1.125 1.125 0 012.25 10.125V6.75z" /> </svg> );
 const MiscIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}> <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.47 2.118 2.25 2.25 0 0 0-2.47-2.118c-.113.028-.227.051-.344.075m6.238-9.422c.042-.02.082-.041.122-.061a6 6 0 0 1 7.42 0a6 6 0 0 0 7.42 0c.04.02.08.041.122.061M3 12c0-1.148.645-2.166 1.6-2.67M21 12a9.753 9.753 0 0 0-4.592-4.592M3 12a9.753 9.753 0 0 1 4.592-4.592m13.816 4.592c.321.124.63.26.927.401M3 12a9.75 9.75 0 0 1 .927-.401" /> </svg> );
 const SpinnerIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"> <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle> <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path> </svg> );
+const CloudSyncIcon: React.FC<{ className?: string }> = ({ className }) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}> <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /> </svg> );
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -30,9 +33,9 @@ const getCurrentFolio = () => { const savedFolio = localStorage.getItem('invoice
 
 const newBankAccountInfo = 'Banorte\nClabe: 072580011951023424\nTarjeta: 4915 6695 2338 7353\nHarold Anguiano Morales';
 
-const webPageTemplateData: TemplateData = { soldTo: '', paymentMethod: 'Transferencia', paymentConditions: '50% de Anticipo. Restante el dia de la entrega.', bankAccount: newBankAccountInfo, items: [ { id: '', quantity: 1, articleNumber: 'WEB-01', description: 'Diseño de página web', unitPrice: 2900, discount: 0, isEditable: false, isPriceEditable: true }, { id: '', quantity: 1, articleNumber: 'WEB-02', description: 'Dominio:', unitPrice: 0, discount: 0, isEditable: false, isDescriptionEditable: true }, { id: '', quantity: 1, articleNumber: '', description: 'Hospedaje web 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Cuenta de correo corporativo sin límite', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'SSL Certificado de seguridad', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Botón flotante WhatsApp', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Botón flotante teléfono', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Formulario de contacto', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Integración a redes sociales', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Alta de página web en Google', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Actualizaciones menores 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Soporte técnico 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Renovación al año $1950 (Incluye por 1 año más todos los conceptos mencionados anteriormente)', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true } ] };
-const onlineStoreTemplateData: TemplateData = { soldTo: '', paymentMethod: 'Transferencia', paymentConditions: '50% de Anticipo. Restante el dia de la entrega.', bankAccount: newBankAccountInfo, items: [ { id: '', quantity: 1, articleNumber: 'ECOMM-01', description: 'Tienda en línea ( Portal )', unitPrice: 3900, discount: 0, isEditable: false, isPriceEditable: true }, { id: '', quantity: 1, articleNumber: 'WEB-02', description: 'Dominio:', unitPrice: 0, discount: 0, isEditable: false, isDescriptionEditable: true }, { id: '', quantity: 1, articleNumber: '', description: 'Hospedaje web 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Cuenta de correo corporativo sin límite', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'SSL Certificado de seguridad', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Botón flotante WhatsApp', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Botón flotante teléfono', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Formulario de contacto', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Integración a redes sociales', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Alta de página web en Google', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Actualizaciones menores 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Soporte técnico 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Carrito de compras', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Plataforma de cobro (PayPal, Mercadopago, Stripe - Otros)', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Panel de administración', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Capacitación (Tutoriales, Videotutoriales, etc)', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Renovación al año $1950 (Incluye por 1 año más todos los conceptos mencionados anteriormente)', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true } ] };
-const miscellaneousTemplateData: TemplateData = { soldTo: '', paymentMethod: 'Transferencia', paymentConditions: '50% de Anticipo. Restante el dia de la entrega.', bankAccount: newBankAccountInfo, items: [ { id: '', quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true }, { id: '', quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true }, { id: '', quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true } ] };
+const webPageTemplateData: TemplateData = { soldTo: '', paymentMethod: 'Transferencia', paymentConditions: '50% de Anticipo. Restante el dia de la entrega.', bankAccount: newBankAccountInfo, items: [ { id: '', quantity: 1, articleNumber: 'WEB-01', description: 'Diseño de página web', unitPrice: 2900, discount: 0, isEditable: false, isPriceEditable: true }, { id: '', quantity: 1, articleNumber: 'WEB-02', description: 'Dominio:', unitPrice: 0, discount: 0, isEditable: false, isDescriptionEditable: true }, { id: '', quantity: 1, articleNumber: '', description: 'Hospedaje web 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Cuenta de correo corporativo sin límite', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'SSL Certificado de seguridad', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Botón flotante WhatsApp', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Botón flotante teléfono', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Formulario de contacto', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Integración a redes sociales', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Alta de página web en Google', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Actualizaciones menores 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Soporte técnico 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Renovación al año $1950 (Incluye por 1 año más todos los conceptos mencionados anteriormente)', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true, isDescriptionEditable: true, isPriceEditable: true } ] };
+const onlineStoreTemplateData: TemplateData = { soldTo: '', paymentMethod: 'Transferencia', paymentConditions: '50% de Anticipo. Restante el dia de la entrega.', bankAccount: newBankAccountInfo, items: [ { id: '', quantity: 1, articleNumber: 'ECOMM-01', description: 'Tienda en línea ( Portal )', unitPrice: 3900, discount: 0, isEditable: false, isPriceEditable: true }, { id: '', quantity: 1, articleNumber: 'WEB-02', description: 'Dominio:', unitPrice: 0, discount: 0, isEditable: false, isDescriptionEditable: true }, { id: '', quantity: 1, articleNumber: '', description: 'Hospedaje web 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Cuenta de correo corporativo sin límite', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'SSL Certificado de seguridad', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Botón flotante WhatsApp', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Botón flotante teléfono', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Formulario de contacto', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Integración a redes sociales', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Alta de página web en Google', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Actualizaciones menores 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Soporte técnico 1 año', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Carrito de compras', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Plataforma de cobro (PayPal, Mercadopago, Stripe - Otros)', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Panel de administración', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Capacitación (Tutoriales, Videotutoriales, etc)', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: 'Renovación al año $1950 (Incluye por 1 año más todos los conceptos mencionados anteriormente)', unitPrice: 0, discount: 0, isEditable: false }, { id: '', quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true, isDescriptionEditable: true, isPriceEditable: true } ] };
+const miscellaneousTemplateData: TemplateData = { soldTo: '', paymentMethod: 'Transferencia', paymentConditions: '50% de Anticipo. Restante el dia de la entrega.', bankAccount: newBankAccountInfo, items: [ { id: '', quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true, isDescriptionEditable: true, isPriceEditable: true } ] };
 
 const createInvoiceFromTemplate = (template: TemplateData, folio: number): InvoiceData => {
     return { ...template, items: template.items.map(item => ({ ...item, id: crypto.randomUUID() })), date: getCurrentDate(), receiptNumber: folio.toString(), anticipo: 0 };
@@ -41,7 +44,7 @@ const createInvoiceFromTemplate = (template: TemplateData, folio: number): Invoi
 const parseDate = (dateStr: string) => { const [day, month, year] = dateStr.split('/').map(Number); return new Date(2000 + year, month - 1, day); };
 
 // --- DASHBOARD COMPONENT ---
-const Dashboard: React.FC<{ history: HistoryItem[]; onNewInvoice: (template: TemplateData) => void }> = ({ history, onNewInvoice }) => {
+const Dashboard: React.FC<{ history: HistoryItem[]; onNewInvoice: (template: TemplateData) => void; isSyncing: boolean }> = ({ history, onNewInvoice, isSyncing }) => {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfWeek = new Date(startOfToday);
@@ -82,13 +85,21 @@ const Dashboard: React.FC<{ history: HistoryItem[]; onNewInvoice: (template: Tem
     const StatCard: React.FC<{ title: string; amount: number }> = ({ title, amount }) => (
         <div className="bg-gray-800 p-4 rounded-lg shadow-md flex-1 min-w-[120px]">
             <h3 className="text-sm text-gray-400 font-medium">{title}</h3>
-            <p className="text-2xl font-bold text-white mt-1">${amount.toLocaleString('es-MX')}</p>
+            <p className="text-2xl font-bold text-white mt-1">${amount.toLocaleString('es-MX', { maximumFractionDigits: 0 })}</p>
         </div>
     );
 
     return (
         <div>
-            <h1 className="text-3xl font-bold text-gray-200 w-full text-center mb-6">Panel de Ventas</h1>
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-3xl font-bold text-gray-200">Panel de Ventas</h1>
+                {isSyncing && (
+                  <div className="flex items-center text-blue-400 text-xs animate-pulse">
+                    <CloudSyncIcon className="w-4 h-4 mr-1 animate-spin" />
+                    Sincronizando...
+                  </div>
+                )}
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <StatCard title="Hoy" amount={salesToday} />
                 <StatCard title="Esta Semana" amount={salesThisWeek} />
@@ -134,11 +145,61 @@ const Dashboard: React.FC<{ history: HistoryItem[]; onNewInvoice: (template: Tem
 function App() {
   const [folio, setFolio] = useState(getCurrentFolio);
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(() => createInvoiceFromTemplate(miscellaneousTemplateData, folio));
-  const [history, setHistory] = useState<HistoryItem[]>(() => { const savedHistory = localStorage.getItem('invoiceHistory'); return savedHistory ? JSON.parse(savedHistory) : []; });
+  const [history, setHistory] = useState<HistoryItem[]>(() => { 
+    const savedHistory = localStorage.getItem('invoiceHistory'); 
+    return savedHistory ? JSON.parse(savedHistory) : []; 
+  });
   const [currentView, setCurrentView] = useState<'dashboard' | 'form'>('dashboard');
   const [generatedPdfFile, setGeneratedPdfFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  // --- SUPABASE SYNC ---
+  useEffect(() => {
+    const fetchHistory = async () => {
+      setIsSyncing(true);
+      try {
+        const { data, error } = await supabase
+          .from('invoices')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data) {
+          const formattedHistory: HistoryItem[] = data.map(item => ({
+            soldTo: item.sold_to,
+            date: item.date,
+            receiptNumber: item.receipt_number,
+            paymentMethod: item.payment_method,
+            paymentConditions: item.payment_conditions,
+            bankAccount: item.bank_account,
+            items: item.items,
+            anticipo: item.anticipo,
+            total: item.total,
+            restante: item.restante
+          }));
+          setHistory(formattedHistory);
+          
+          // Actualizar folio basado en el más alto encontrado
+          const maxFolio = data.reduce((max, item) => {
+            const num = parseInt(item.receipt_number, 10);
+            return isNaN(num) ? max : Math.max(max, num);
+          }, 2999);
+          const nextFolio = maxFolio + 1;
+          setFolio(nextFolio);
+          localStorage.setItem('invoiceFolio', nextFolio.toString());
+        }
+      } catch (err) {
+        console.error("Error fetching from Supabase:", err);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -205,18 +266,53 @@ function App() {
   };
 
   const handleItemChange = (id: string, field: keyof Omit<LineItem, 'id'>, value: string | number) => { setInvoiceData(prev => ({ ...prev, items: prev.items.map(item => item.id === id ? { ...item, [field]: value } : item), })); };
-  const addItem = () => { const newItem: LineItem = { id: crypto.randomUUID(), quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true }; setInvoiceData(prev => ({ ...prev, items: [...prev.items, newItem] })); };
+  const addItem = () => { const newItem: LineItem = { id: crypto.randomUUID(), quantity: 1, articleNumber: '', description: '', unitPrice: 0, discount: 0, isEditable: true, isDescriptionEditable: true, isPriceEditable: true }; setInvoiceData(prev => ({ ...prev, items: [...prev.items, newItem] })); };
   const deleteItem = (id: string) => { setInvoiceData(prev => ({ ...prev, items: prev.items.filter(item => item.id !== id), })); };
   
-  const updateHistory = (currentInvoice: InvoiceData, total: number, restante: number) => {
-    setHistory(prevHistory => {
-        const existingIndex = prevHistory.findIndex(inv => inv.receiptNumber === currentInvoice.receiptNumber);
-        const newHistoryItem: HistoryItem = { ...currentInvoice, total, restante };
-        if (existingIndex > -1) {
-            const updatedHistory = [...prevHistory]; updatedHistory[existingIndex] = newHistoryItem; return updatedHistory;
-        }
-        return [...prevHistory, newHistoryItem].sort((a, b) => parseInt(b.receiptNumber, 10) - parseInt(a.receiptNumber, 10));
-    });
+  const updateHistory = async (currentInvoice: InvoiceData, total: number, restante: number) => {
+    setIsSyncing(true);
+    const newHistoryItem: HistoryItem = { ...currentInvoice, total, restante };
+
+    try {
+      // Sincronizar con Supabase
+      const { error } = await supabase
+        .from('invoices')
+        .upsert({
+          receipt_number: currentInvoice.receiptNumber,
+          sold_to: currentInvoice.soldTo,
+          date: currentInvoice.date,
+          payment_method: currentInvoice.paymentMethod,
+          payment_conditions: currentInvoice.paymentConditions,
+          bank_account: currentInvoice.bankAccount,
+          anticipo: currentInvoice.anticipo,
+          total: total,
+          restante: restante,
+          items: currentInvoice.items
+        });
+
+      if (error) throw error;
+
+      // Actualizar estado local
+      setHistory(prevHistory => {
+          const existingIndex = prevHistory.findIndex(inv => inv.receiptNumber === currentInvoice.receiptNumber);
+          if (existingIndex > -1) {
+              const updatedHistory = [...prevHistory]; updatedHistory[existingIndex] = newHistoryItem; return updatedHistory;
+          }
+          return [...prevHistory, newHistoryItem].sort((a, b) => parseInt(b.receiptNumber, 10) - parseInt(a.receiptNumber, 10));
+      });
+    } catch (err) {
+      console.error("Error syncing with Supabase:", err);
+      // Aún actualizamos localmente para persistencia en localStorage
+      setHistory(prevHistory => {
+          const existingIndex = prevHistory.findIndex(inv => inv.receiptNumber === currentInvoice.receiptNumber);
+          if (existingIndex > -1) {
+              const updatedHistory = [...prevHistory]; updatedHistory[existingIndex] = newHistoryItem; return updatedHistory;
+          }
+          return [...prevHistory, newHistoryItem].sort((a, b) => parseInt(b.receiptNumber, 10) - parseInt(a.receiptNumber, 10));
+      });
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleNewInvoice = (template: TemplateData) => {
@@ -301,7 +397,7 @@ function App() {
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
 
-          updateHistory(invoiceData, subtotal, restante);
+          await updateHistory(invoiceData, subtotal, restante);
           const nextFolio = folio + 1;
           setFolio(nextFolio);
           localStorage.setItem('invoiceFolio', nextFolio.toString());
@@ -363,7 +459,25 @@ function App() {
     }
   };
 
-  const deleteFromHistory = (receiptNumber: string) => { if (window.confirm(`¿Estás seguro que quieres borrar el recibo ${receiptNumber}?`)) { setHistory(prev => prev.filter(inv => inv.receiptNumber !== receiptNumber)); } };
+  const deleteFromHistory = async (receiptNumber: string) => { 
+    if (window.confirm(`¿Estás seguro que quieres borrar el recibo ${receiptNumber}?`)) { 
+      setIsSyncing(true);
+      try {
+        const { error } = await supabase
+          .from('invoices')
+          .delete()
+          .eq('receipt_number', receiptNumber);
+
+        if (error) throw error;
+        setHistory(prev => prev.filter(inv => inv.receiptNumber !== receiptNumber)); 
+      } catch (err) {
+        console.error("Error deleting from Supabase:", err);
+        setHistory(prev => prev.filter(inv => inv.receiptNumber !== receiptNumber)); 
+      } finally {
+        setIsSyncing(false);
+      }
+    } 
+  };
   
   const returnToDashboard = () => { 
       setGeneratedPdfFile(null);
@@ -376,7 +490,7 @@ function App() {
           <div className="max-w-4xl mx-auto">
             {currentView === 'dashboard' ? (
                 <>
-                  <Dashboard history={history} onNewInvoice={handleNewInvoice} />
+                  <Dashboard history={history} onNewInvoice={handleNewInvoice} isSyncing={isSyncing} />
                   <History history={history} loadInvoice={loadFromHistory} deleteInvoice={deleteFromHistory} shareInvoice={shareInvoiceFromHistory} />
                 </>
             ) : (
@@ -420,10 +534,10 @@ function App() {
             </footer>
           )}
 
-          {isGenerating && currentView === 'dashboard' && (
+          {(isGenerating || isSyncing) && currentView === 'dashboard' && (
             <div className="fixed inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50">
                 <SpinnerIcon className="animate-spin w-12 h-12 text-white mb-4" />
-                <p className="text-white text-lg">Generando PDF para compartir...</p>
+                <p className="text-white text-lg">{isGenerating ? "Generando PDF para compartir..." : "Sincronizando con la nube..."}</p>
             </div>
           )}
           

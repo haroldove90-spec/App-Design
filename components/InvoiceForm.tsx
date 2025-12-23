@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { InvoiceData, LineItem } from '../types';
 import ItemsTable from './ItemsTable';
+import Logo from './Logo';
 
 interface InvoiceFormProps {
   invoiceData: InvoiceData;
@@ -46,10 +48,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
         <div id="invoice-form-screen" className="p-4 sm:p-8 bg-gray-900 shadow-lg rounded-sm max-w-4xl mx-auto font-sans text-white">
           <header className="flex flex-col sm:flex-row justify-between items-start mb-8">
             <div>
-              <img src="https://appdesignmex.com/assets/images/app-desig-logo-272x122.png" alt="Logo Appdesign" className="w-48" />
+              <Logo className="h-[55px]" />
             </div>
             <div className="text-left sm:text-right mt-4 sm:mt-0 w-full sm:w-auto">
-              <h2 className="text-2xl sm:text-3xl font-light uppercase tracking-widest">Recibo de Ventas</h2>
+              <h2 className="text-xl sm:text-2xl font-light uppercase tracking-widest">Recibo de Ventas</h2>
               <div className="mt-2 text-sm">
                 <div className="flex justify-start sm:justify-end">
                   <span className="font-semibold mr-2">Fecha:</span>

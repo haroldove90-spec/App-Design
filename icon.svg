@@ -1,22 +1,5 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <rect width="512" height="512" rx="90" fill="#000000"/>
-    <g transform="translate(170, 170) scale(1.2)">
-        <!-- Top row of dots -->
-        <circle cx="0" cy="0" r="8" fill="white"/>
-        <circle cx="30" cy="0" r="8" fill="white"/>
-        <circle cx="60" cy="0" r="8" fill="white"/>
-        <circle cx="90" cy="0" r="8" fill="white"/>
-        <circle cx="120" cy="0" r="8" fill="white"/>
-        <circle cx="150" cy="0" r="8" fill="white"/>
-        <!-- Bottom row of dots -->
-        <circle cx="0" cy="25" r="8" fill="white"/>
-        <circle cx="30" cy="25" r="8" fill="white"/>
-        <circle cx="60" cy="25" r="8" fill="white"/>
-        <circle cx="90" cy="25" r="8" fill="white"/>
-        <circle cx="120" cy="25" r="8" fill="white"/>
-        <circle cx="150" cy="25" r="8" fill="white"/>
-    </g>
-    <text x="50%" y="350" text-anchor="middle" fill="white" font-size="80" font-family="sans-serif" font-weight="300" letter-spacing="4">
-        appdesign
-    </text>
+    <image xlink:href="https://appdesignmex.com/wp-content/uploads/2025/10/App-Design-Nueva-Imagen-05.png" x="56" y="156" width="400" height="200" preserveAspectRatio="xMidYMid meet"/>
 </svg>

@@ -1,11 +1,13 @@
+
 import React, { useEffect } from 'react';
 import { InvoiceData } from '../types';
 import ItemsTable from './ItemsTable';
+import Logo from './Logo';
 
 interface PrintableInvoiceProps {
   invoiceData: InvoiceData;
   restante: number;
-  onRendered?: () => void;
+  onRendered?: void;
 }
 
 const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({ invoiceData, restante, onRendered }) => {
@@ -20,19 +22,13 @@ const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({ invoiceData, restan
     <div id="invoice-to-print" className="bg-white text-black font-sans w-[8.5in] h-[11in] p-8 flex flex-col text-sm">
       <header className="flex justify-between items-start mb-4">
         <div>
-          <svg width="160" viewBox="0 0 500 230" xmlns="http://www.w3.org/2000/svg">
-              <g transform="translate(160,30)">
-                  <circle cx="0" cy="0" r="8" fill="#a0aec0"/><circle cx="30" cy="0" r="8" fill="#a0aec0"/><circle cx="60" cy="0" r="8" fill="#a0aec0"/><circle cx="90" cy="0" r="8" fill="#a0aec0"/><circle cx="120" cy="0" r="8" fill="#a0aec0"/><circle cx="150" cy="0" r="8" fill="#a0aec0"/>
-                  <circle cx="0" cy="25" r="8" fill="#a0aec0"/><circle cx="30" cy="25" r="8" fill="#a0aec0"/><circle cx="60" cy="25" r="8" fill="#a0aec0"/><circle cx="90" cy="25" r="8" fill="#a0aec0"/><circle cx="120" cy="25" r="8" fill="#a0aec0"/><circle cx="150" cy="25" r="8" fill="#a0aec0"/>
-              </g>
-              <text x="50%" y="185" textAnchor="middle" fill="#a0aec0" fontSize="100" fontFamily="sans-serif" fontWeight="300" letterSpacing="2">appdesign</text>
-          </svg>
-          <div className="mt-4 ml-1">
+          <Logo className="h-[55px]" />
+          <div className="mt-6 ml-1">
               <p>Vendido a: <span className="font-semibold">{invoiceData.soldTo || 'N/A'}</span></p>
           </div>
         </div>
         <div className="text-right">
-          <h2 className="text-4xl font-light text-gray-700">Recibo de ventas</h2>
+          <h2 className="text-3xl font-light text-gray-700 uppercase tracking-tighter">Recibo de ventas</h2>
           <div className="mt-2 text-sm space-y-1">
               <p><span className="font-semibold">Fecha:</span> {invoiceData.date}</p>
               <p><span className="font-semibold">Recibo:</span> {invoiceData.receiptNumber}</p>
@@ -69,8 +65,9 @@ const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({ invoiceData, restan
       </section>
 
       <footer className="mt-auto pt-4 text-center text-xs text-gray-500">
-        <p className="font-bold">Gracias por su confianza.</p>
-        <p>Álamo No. 8, Los Reyes Iztacala, Tlalnepantla, Edo. de México., C.P. 54070 Tel. 55 7579 3453 – Cel. 56 2422 2449</p>
+        <p className="font-bold text-black mb-1">Gracias por su confianza.</p>
+        <p>Álamo No. 8, Los Reyes Iztacala, Tlalnepantla, Edo. de México., C.P. 54070</p>
+        <p>Tel. 55 7579 3453 – Cel. 56 2422 2449</p>
       </footer>
     </div>
   );
